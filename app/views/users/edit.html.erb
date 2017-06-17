@@ -1,5 +1,5 @@
 <div class="text-center">
-  <h1>Sign up</h1>
+  <h1>Edit Profile</h1>
 </div>
 
 <div class="row">
@@ -23,17 +23,7 @@
         <%= f.email_field :email, class: "form-control" %>
       </div>
       
-      <div class="form-group">
-        <%= f.label :password, "password" %>
-        <%= f.password_field :password, class: "form-control" %>
-      </div>
-      
-      <div class="form-group">
-        <%= f.label :password_confirmation, "confirmation" %>
-        <%= f.password_field :password_confirmation, class: "form-control" %>
-      </div>
-        
-      <%= f.submit "sing up", class: "form-control btn btn-primary btn-black" %>
+      <%= f.submit "Update Profile", class: "form-control btn btn-primary btn-black" %>
     
     <% end %>
   </div>
