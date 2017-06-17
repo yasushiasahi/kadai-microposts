@@ -23,9 +23,12 @@
   </aside>
   <div class="col-xs-8">
     <ul class="nav nav-tabs nav-justified">
-      <li><a href="#"></a>Microposts</li>
+      <li class-"<%="active" if current_page?(user_path(@user)) %>">
+        <%= link_to user_path(@user) do %>Microposts <span class="badge"><%= @count_microposts %></span>
+      <% end %></li>
       <li><a href="#"></a>Followings</li>
       <li><a href="#"></a>Followers</li>
     </ul>
+    <%= render 'microposts/microposts', microposts: @microposts, user: @user %>
   </div>
 </div>
