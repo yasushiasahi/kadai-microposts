@@ -7,14 +7,18 @@
       </div>
       <div class="media-body">
         <div>
-          <%= link_to user.name, user_path(user) %> <span class="text-muted">posted at <%= micropost.created_at %></span>
+          <%= link_to user.nickname, user_path(user) %> <span class="text-muted">posted at <%= micropost.created_at %></span>
         </div>
         <div><%= micropost.content %></div>
         <div>
-          <%= link_to "Delete", micropost, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
+          <% if current_user.id == micropost.user_id %>
+            <%= link_to "Delete", micropost, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
+          <% else %>
+            <%= render "favorites/favorite_button", micropost: micropost %>
+          <% end %>
         </div>
       </div>
     </li>
   <% end %>
   <%= paginate microposts %>
-</ul>
+</ul> 
