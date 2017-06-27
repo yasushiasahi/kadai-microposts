@@ -62,7 +62,12 @@ class UsersController < ApplicationController
     counts(@user)
   end
 
-
+  def favorites
+    @user = User.find(params[:id])
+    @adding_to_favorites = @user.adding_to_favorites.page(params[:page])
+    counts(@user)
+  end
+  
   private
   
   def user_params

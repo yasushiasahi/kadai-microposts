@@ -1,0 +1,288 @@
+[1mdiff --git a/app/controllers/application_controller.rb b/app/controllers/application_controller.rb[m
+[1mindex a884b6e..d2f4762 100644[m
+[1m--- a/app/controllers/application_controller.rb[m
+[1m+++ b/app/controllers/application_controller.rb[m
+[36m@@ -16,5 +16,6 @@[m [mclass ApplicationController < ActionController::Base[m
+     @count_microposts = user.microposts.count[m
+     @count_followings = user.followings.count[m
+     @count_followers = user.followers.count[m
+[32m+[m[32m    @count_adding_to_favorites = user.favorites.count[m
+   end[m
+ end[m
+[1mdiff --git a/app/controllers/microposts_controller.rb b/app/controllers/microposts_controller.rb[m
+[1mindex 593219c..62c15a4 100644[m
+[1m--- a/app/controllers/microposts_controller.rb[m
+[1m+++ b/app/controllers/microposts_controller.rb[m
+[36m@@ -32,4 +32,5 @@[m [mclass MicropostsController < ApplicationController[m
+       redirect_to root_path[m
+     end[m
+   end[m
+[32m+[m[41m  [m
+ end[m
+[1mdiff --git a/app/controllers/toppages_controller.rb b/app/controllers/toppages_controller.rb[m
+[1mindex 6bf3266..35c4d8c 100644[m
+[1m--- a/app/controllers/toppages_controller.rb[m
+[1m+++ b/app/controllers/toppages_controller.rb[m
+[36m@@ -3,7 +3,9 @@[m [mclass ToppagesController < ApplicationController[m
+     if logged_in?[m
+       @user = current_user[m
+       @micropost = current_user.microposts.build[m
+[31m-      @microposts = current_user.feed_microposts.order("created_at DESC").page(params[:page])[m
+[32m+[m[32m      @microposts = current_user.feed_microposts.order("created_at DESC")[m
+[32m+[m[32m      counts(@user)[m
+[32m+[m[32m      @ranking = Micropost.find(Favorite.group(:micropost_id).order('count(micropost_id) desc').limit(3).pluck(:micropost_id))[m
+     end[m
+   end[m
+[31m-end[m
+[32m+[m[32mend[m
+\ No newline at end of file[m
+[1mdiff --git a/app/controllers/users_controller.rb b/app/controllers/users_controller.rb[m
+[1mindex ef518b6..0b3cc66 100644[m
+[1m--- a/app/controllers/users_controller.rb[m
+[1m+++ b/app/controllers/users_controller.rb[m
+[36m@@ -62,7 +62,12 @@[m [mclass UsersController < ApplicationController[m
+     counts(@user)[m
+   end[m
+ [m
+[31m-[m
+[32m+[m[32m  def favorites[m
+[32m+[m[32m    @user = User.find(params[:id])[m
+[32m+[m[32m    @adding_to_favorites = @user.adding_to_favorites.page(params[:page])[m
+[32m+[m[32m    counts(@user)[m
+[32m+[m[32m  end[m
+[32m+[m[41m  [m
+   private[m
+   [m
+   def user_params[m
+[1mdiff --git a/app/helpers/users_helper.rb b/app/helpers/users_helper.rb[m
+[1mindex 035cafb..4be9aed 100644[m
+[1m--- a/app/helpers/users_helper.rb[m
+[1m+++ b/app/helpers/users_helper.rb[m
+[36m@@ -4,4 +4,5 @@[m [mmodule UsersHelper[m
+     size = options[:size][m
+     "https://secure.gravatar.com/avatar/#{gravatar_id}?s=#{size}"[m
+   end[m
+[32m+[m
+ end[m
+[1mdiff --git a/app/views/layouts/_navbar.html.erb b/app/views/layouts/_navbar.html.erb[m
+[1mindex ff2fbdc..ff767c2 100644[m
+[1m--- a/app/views/layouts/_navbar.html.erb[m
+[1m+++ b/app/views/layouts/_navbar.html.erb[m
+[36m@@ -17,6 +17,7 @@[m
+         [m
+         <% if logged_in? %>[m
+           <li><%= link_to "Users", users_path %></li>[m
+[32m+[m[32m          <li><%= link_to "My Favorites", favorites_user_path(current_user) %></li>[m
+           <li class="dropdown">[m
+             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><%= current_user.name %><span class="caret"></span></a>[m
+              <ul class="dropdown-menu">[m
+[1mdiff --git a/app/views/microposts/_microposts.html.erb b/app/views/microposts/_microposts.html.erb[m
+[1mindex 451e655..d22efa1 100644[m
+[1m--- a/app/views/microposts/_microposts.html.erb[m
+[1m+++ b/app/views/microposts/_microposts.html.erb[m
+[36m@@ -20,5 +20,4 @@[m
+       </div>[m
+     </li>[m
+   <% end %>[m
+[31m-  <%= paginate microposts %>[m
+ </ul> [m
+\ No newline at end of file[m
+[1mdiff --git a/app/views/toppages/index.html.erb b/app/views/toppages/index.html.erb[m
+[1mindex cb54ffd..06a5091 100644[m
+[1m--- a/app/views/toppages/index.html.erb[m
+[1m+++ b/app/views/toppages/index.html.erb[m
+[36m@@ -1,16 +1,27 @@[m
+ <% if logged_in? %>[m
+[31m-  <p>ログイン完了ユーザ：<%= current_user.name %></p>[m
+   <div class="row">[m
+[31m-    <aside class="col-md-4">[m
+[31m-      <%= form_for(@micropost) do |f| %>[m
+[31m-        <div class="form-group">[m
+[31m-          <%= f.text_area :content, class: "form-control", rows: 5 %>[m
+[31m-        </div>[m
+[31m-        <%= f.submit "Post", class: "btn btn-primary btn-block" %>[m
+[31m-      <% end %>[m
+[32m+[m[32m    <aside class="col-xs-3">[m
+[32m+[m[32m      <%= render "aside" %>[m
+     </aside>[m
+[31m-    <div class="col-xs-8">[m
+[31m-      <%= render "microposts/microposts", microposts: @microposts, user: @user %>[m
+[32m+[m[32m    <div class="col-xs-5">[m
+[32m+[m[32m      <div class="panel panel-default">[m
+[32m+[m[32m        <div class="panel-heading">[m
+[32m+[m[32m          <h3 class="panel-title text-center">Your & Following User's Microposts</h3>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <div class="panel-body">[m
+[32m+[m[32m          <%= render "microposts/microposts", microposts: @microposts, user: @user %>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m    <div class="col-xs-4">[m
+[32m+[m[32m      <div class="panel panel-default">[m
+[32m+[m[32m        <div class="panel-heading">[m
+[32m+[m[32m          <h3 class="panel-title text-center">Popular Microposts</h3>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <div class="panel-body">[m
+[32m+[m[32m          <%= render "microposts/microposts", microposts: @ranking, user: @user %>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+     </div>[m
+   </div>[m
+ <% else %>[m
+[1mdiff --git a/app/views/users/_users.html.erb b/app/views/users/_users.html.erb[m
+[1mindex c276845..bf12f2f 100644[m
+[1m--- a/app/views/users/_users.html.erb[m
+[1m+++ b/app/views/users/_users.html.erb[m
+[36m@@ -1,19 +1,21 @@[m
+ <% if users.any? %>[m
+   <ul class="media-list">[m
+     <% users.each do |user| %>[m
+[31m-      <li class="media">[m
+[31m-        <div class="media-left">[m
+[31m-          <img class="media-object img-rounded" src="<%= gravatar_url(user, { size: 50 }) %>" alt="">[m
+[31m-        </div>[m
+[31m-        <div class="media-body">[m
+[31m-          <div>[m
+[31m-            <%= user.nickname %>[m
+[32m+[m[32m      <% unless user == current_user %>[m
+[32m+[m[32m        <li class="media">[m
+[32m+[m[32m          <div class="media-left">[m
+[32m+[m[32m            <img class="media-object img-rounded" src="<%= gravatar_url(user, { size: 50 }) %>" alt="">[m
+           </div>[m
+[31m-          <div>[m
+[31m-            <p><%= link_to "View Profile", user_path(user) %></p>[m
+[32m+[m[32m          <div class="media-body">[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <%= user.nickname %>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <p><%= link_to "View Profile", user_path(user) %></p>[m
+[32m+[m[32m            </div>[m
+           </div>[m
+[31m-        </div>[m
+[31m-      </li>[m
+[32m+[m[32m        </li>[m
+[32m+[m[32m      <% end %>[m
+     <% end %>[m
+   </ul>[m
+   <%= paginate users %>[m
+[1mdiff --git a/app/views/users/followers.html.erb b/app/views/users/followers.html.erb[m
+[1mindex 59596d6..054f639 100644[m
+[1m--- a/app/views/users/followers.html.erb[m
+[1m+++ b/app/views/users/followers.html.erb[m
+[36m@@ -1,33 +1,4 @@[m
+[31m-<div class="row">[m
+[31m-  <aside class="col-xs-4">[m
+[31m-    <div class="panel panel-default">[m
+[31m-      <div class="panel-heading">[m
+[31m-        <h3 class="panel-title text-center"><%= @user.nickname %></h3>[m
+[31m-      </div>[m
+[31m-      <div class="panel-body">[m
+[31m-        <img class="media-object img-rounded img-responsive" src="<%= gravatar_url(@user, { size: 500 }) %>" alt="">[m
+[31m-      </div>[m
+[31m-      <% if @user.id == session[:user_id] %>[m
+[31m-        <table class="table table-bordered">[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Name</th>[m
+[31m-            <td><%= @user.name %></td>[m
+[31m-          </tr>[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Email</th>[m
+[31m-            <td><%= @user.email %></td>[m
+[31m-          </tr>[m
+[31m-        </table>[m
+[31m-      <% end %>[m
+[31m-    </div>[m
+[31m-    <%= render "relationships/follow_button", user: @user %>[m
+[31m-  </aside>[m
+[31m-  <div class="col-xs-8">[m
+[31m-    <ul class="nav nav-tabs nav-justified">[m
+[31m-      <li class-"<%="active" if current_page?(user_path(@user)) %>"><%= link_to user_path(@user) do %>Microposts <span class="badge"><%= @count_microposts %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followings_user_path(@user)) %>"><%= link_to followings_user_path(@user) do %>Followings <span class="badge"><%= @count_followings %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followers_user_path(@user)) %>"><%= link_to followers_user_path(@user) do %>Followers <span class="badge"><%= @count_followers %></span><% end %></li>[m
+[31m-    </ul>[m
+[32m+[m[32m<%= render 'user_page' %>[m
+     <%= render "users", users: @followers%>[m
+   </div>[m
+ </div>[m
+\ No newline at end of file[m
+[1mdiff --git a/app/views/users/followings.html.erb b/app/views/users/followings.html.erb[m
+[1mindex b008778..59e0312 100644[m
+[1m--- a/app/views/users/followings.html.erb[m
+[1m+++ b/app/views/users/followings.html.erb[m
+[36m@@ -1,33 +1,4 @@[m
+[31m-<div class="row">[m
+[31m-  <aside class="col-xs-4">[m
+[31m-    <div class="panel panel-default">[m
+[31m-      <div class="panel-heading">[m
+[31m-        <h3 class="panel-title text-center"><%= @user.nickname %></h3>[m
+[31m-      </div>[m
+[31m-      <div class="panel-body">[m
+[31m-        <img class="media-object img-rounded img-responsive" src="<%= gravatar_url(@user, { size: 500 }) %>" alt="">[m
+[31m-      </div>[m
+[31m-      <% if @user.id == session[:user_id] %>[m
+[31m-        <table class="table table-bordered">[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Name</th>[m
+[31m-            <td><%= @user.name %></td>[m
+[31m-          </tr>[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Email</th>[m
+[31m-            <td><%= @user.email %></td>[m
+[31m-          </tr>[m
+[31m-        </table>[m
+[31m-      <% end %>[m
+[31m-    </div>[m
+[31m-    <%= render "relationships/follow_button", user: @user %>[m
+[31m-  </aside>[m
+[31m-  <div class="col-xs-8">[m
+[31m-    <ul class="nav nav-tabs nav-justified">[m
+[31m-      <li class-"<%="active" if current_page?(user_path(@user)) %>"><%= link_to user_path(@user) do %>Microposts <span class="badge"><%= @count_microposts %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followings_user_path(@user)) %>"><%= link_to followings_user_path(@user) do %>Followings <span class="badge"><%= @count_followings %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followers_user_path(@user)) %>"><%= link_to followers_user_path(@user) do %>Followers <span class="badge"><%= @count_followers %></span><% end %></li>[m
+[31m-    </ul>[m
+[32m+[m[32m<%= render 'user_page' %>[m
+     <%= render "users", users: @followings%>[m
+   </div>[m
+ </div>[m
+\ No newline at end of file[m
+[1mdiff --git a/app/views/users/show.html.erb b/app/views/users/show.html.erb[m
+[1mindex 0f15191..382d6b1 100644[m
+[1m--- a/app/views/users/show.html.erb[m
+[1m+++ b/app/views/users/show.html.erb[m
+[36m@@ -1,33 +1,4 @@[m
+[31m-<div class="row">[m
+[31m-  <aside class="col-xs-4">[m
+[31m-    <div class="panel panel-default">[m
+[31m-      <div class="panel-heading">[m
+[31m-        <h3 class="panel-title text-center"><%= @user.nickname %></h3>[m
+[31m-      </div>[m
+[31m-      <div class="panel-body">[m
+[31m-        <img class="media-object img-rounded img-responsive" src="<%= gravatar_url(@user, { size: 500 }) %>" alt="">[m
+[31m-      </div>[m
+[31m-      <% if @user.id == session[:user_id] %>[m
+[31m-        <table class="table table-bordered">[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Name</th>[m
+[31m-            <td><%= @user.name %></td>[m
+[31m-          </tr>[m
+[31m-          <tr>[m
+[31m-            <th class="text-center">Email</th>[m
+[31m-            <td><%= @user.email %></td>[m
+[31m-          </tr>[m
+[31m-        </table>[m
+[31m-      <% end %>[m
+[31m-    </div>[m
+[31m-    <%= render "relationships/follow_button", user: @user %>[m
+[31m-  </aside>[m
+[31m-  <div class="col-xs-8">[m
+[31m-    <ul class="nav nav-tabs nav-justified">[m
+[31m-      <li class-"<%="active" if current_page?(user_path(@user)) %>"><%= link_to user_path(@user) do %>Microposts <span class="badge"><%= @count_microposts %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followings_user_path(@user)) %>"><%= link_to followings_user_path(@user) do %>Followings <span class="badge"><%= @count_followings %></span><% end %></li>[m
+[31m-      <li class="<%= 'active' if current_page?(followers_user_path(@user)) %>"><%= link_to followers_user_path(@user) do %>Followers <span class="badge"><%= @count_followers %></span><% end %></li>[m
+[31m-    </ul>[m
+[32m+[m[32m<%= render 'user_page' %>[m
+     <%= render 'microposts/microposts', microposts: @microposts, user: @user %>[m
+   </div>[m
+ </div>[m
+\ No newline at end of file[m
