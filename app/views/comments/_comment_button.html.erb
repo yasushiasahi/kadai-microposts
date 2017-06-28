@@ -1,0 +1,7 @@
+<%= form_for(current_user.comments.build(micropost_id: micropost.id)) do |f| %>
+  <%= hidden_field_tag :micropost_id, micropost.id %>
+  <%= hidden_field_tag :content, "open comments field" %>
+  <%= button_tag(type:'submit', class: "btn submit btn btn-info btn-xs") do %>
+    <span class="glyphicon glyphicon-comment badge"><%= micropost.comments.count %></span> Comments
+  <% end %>
+<% end %>

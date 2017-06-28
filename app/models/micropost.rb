@@ -6,4 +6,5 @@ class Micropost < ApplicationRecord
   
   has_many :favorites
   has_many :added_to_favorites, through: :favorites, source: :user
+  has_many :comments
 end

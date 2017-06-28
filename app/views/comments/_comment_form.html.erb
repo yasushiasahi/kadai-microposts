@@ -1,0 +1,36 @@
+<% comments = micropost.comments %>
+
+<div class="panel panel-info">
+  <div class="panel-heading text-center">
+    <span class="glyphicon glyphicon-comment badge"><%= micropost.comments.count %></span>
+    Comment
+  </div>
+  <div class="panel-body">
+    <% comments.each do |comment| %>
+      <% user = User.find(comment.user_id) %>
+      <div class="media">
+        <a class="media-left" href="#">
+          <img class="media-object img-rounded" src="<%= gravatar_url(micropost.user, options = {size: 50}) %>" alt="" >
+        </a>
+        <div class="media-body">
+          <p class="text-muted"><%= comment.created_at %></p>
+          <p><%= link_to user.nickname, user_path(user) %> <%= comment.content %></p>
+        </div>
+        <% if current_user == user %>
+          <%= link_to "Delete", comment, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
+        <% end %>
+      </div>
+    <% end %>
+    <p></p>
+    <%= form_for(current_user.comments.build(micropost_id: micropost.id)) do |f| %>
+      <%= f.text_area :content, class: "form-control", rows:2 %>
+      <%= hidden_field_tag :micropost_id, micropost.id %>
+      <%= button_tag(type:'submit', class: "btn submit btn btn-info btn-xs btn-block") do %>
+        Post Comment
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+
+

@@ -6,6 +6,7 @@ class ToppagesController < ApplicationController
       @microposts = current_user.feed_microposts.order("created_at DESC")
       counts(@user)
       @ranking = Micropost.find(Favorite.group(:micropost_id).order('count(micropost_id) desc').limit(3).pluck(:micropost_id))
+      @comment = current_user.comments.build
     end
   end
 end

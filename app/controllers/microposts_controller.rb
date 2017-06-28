@@ -16,6 +16,8 @@ class MicropostsController < ApplicationController
   end
 
   def destroy
+    destroy_linked_favorites
+    destroy_linked_comments
     @micropost.destroy
     flash[:success] = "メッセージを削除しました"
     redirect_back(fallback_location: root_path)
@@ -33,4 +35,18 @@ class MicropostsController < ApplicationController
     end
   end
   
+  def destroy_linked_favorites
+    if Favorite.find_by(micropost_id: @micropost.id)
+      favorites = Favorite.all
+      favorites.destroy_all(micropost_id: @micropost.id)
+    end
+  end
+
+  def destroy_linked_comments
+    if Comment.find_by(micropost_id: @micropost.id)
+      comments = Comment.all
+      comments.destroy_all(micropost_id: @micropost.id)
+    end
+  end
+
 end

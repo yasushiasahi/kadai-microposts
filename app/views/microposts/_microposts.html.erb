@@ -13,11 +13,17 @@
         <div>
           <% if current_user.id == micropost.user_id %>
             <%= link_to "Delete", micropost, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
+          <% end %>
+        </div>
+        <div>
+          <%= render "favorites/favorite_button", micropost: micropost %>
+          <% if session[:micropost_id].to_s == micropost.id.to_s %>
+            <%= render "comments/comment_form", micropost: micropost %>
           <% else %>
-            <%= render "favorites/favorite_button", micropost: micropost %>
+            <%= render "comments/comment_button", micropost: micropost %>
           <% end %>
         </div>
       </div>
     </li>
   <% end %>
-</ul> 
+</ul>
