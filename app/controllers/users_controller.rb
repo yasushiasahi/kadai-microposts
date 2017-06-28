@@ -45,6 +45,7 @@ class UsersController < ApplicationController
   
   def destroy
     @user = User.find(session[:user_id])
+    destroy_all_linked_things
     @user.destroy
     flash[:success] = "アカウント削除しました"
     redirect_to "/"
@@ -68,6 +69,8 @@ class UsersController < ApplicationController
     counts(@user)
   end
   
+  
+  
   private
   
   def user_params
@@ -76,6 +79,53 @@ class UsersController < ApplicationController
   
   def user_update_params
     params.require(:user).permit(:name, :email, :nickname)
+  end
+  
+  def destroy_linked_microopsts
+    if Micropost.find_by(user_id: @user.id)
+      microposts = @user.microposts
+      microposts.each do |micropost|
+        if Favorite.find_by(micropost_id: micropost.id)
+          micropost.favorites.destroy_all
+        end
+        if Comment.find_by(micropost_id: micropost.id)
+          micropost.comments.destroy_all
+        end
+      end
+      @user.microposts.destroy_all
+    end
+  end
+  
+  def destroy_linked_relationships
+    if Relationship.find_by(user_id: @user.id)
+      @user.relationships.destroy_all
+    end
+  end
+  
+  def destroy_linked_reverses_of_relationships
+    if Relationship.find_by(follow_id: @user.id)
+      @user.reverses_of_relationship.destroy_all
+    end
+  end
+  
+  def destroy_linked_favorites
+    if Favorite.find_by(user_id: @user.id)
+      @user.favorites.destroy_all
+    end
+  end
+  
+  def destroy_linked_comments
+    if Comment.find_by(user_id: @user.id)
+      @user.comments.destroy_all
+    end
+  end
+  
+  def destroy_all_linked_things
+    destroy_linked_microopsts
+    destroy_linked_relationships
+    destroy_linked_reverses_of_relationships
+    destroy_linked_favorites
+    destroy_linked_comments
   end
   
 end

@@ -15,10 +15,11 @@
         <div class="media-body">
           <p class="text-muted"><%= comment.created_at %></p>
           <p><%= link_to user.nickname, user_path(user) %> <%= comment.content %></p>
+            <% if current_user == user %>
+              <%= link_to "Delete", comment, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
+            <% end %>
+          </p>
         </div>
-        <% if current_user == user %>
-          <%= link_to "Delete", comment, method: :delete, data: {confirm:"You sure?"}, class:"brn btn-danger btn-xs" %>
-        <% end %>
       </div>
     <% end %>
     <p></p>
@@ -32,5 +33,6 @@
   </div>
 </div>
 
+<% session[:micropost_id] = "0" %>
 
 

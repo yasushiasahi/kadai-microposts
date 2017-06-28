@@ -1,9 +1,58 @@
 <% if logged_in? %>
   <div class="row">
-    <aside class="col-xs-3">
-      <%= render "toppages/aside" %>
+    <aside class="col-md-4">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <img class="media-object img-rounded img-responsive img-center" src="<%= gravatar_url(@user, { size: 300 }) %>" alt="">
+        </div>
+        <div class="panel-body">
+          <div class="well well-sm text-center"><%= current_user.nickname %></div>
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default">
+                <%= link_to "Microposts", user_path(@user) %>
+                <div><span class="badge"><%= @count_microposts %></span></div>
+              </button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default">
+                <%= link_to "Favorites", favorites_user_path(@user) %>
+                <div><span class="badge"><%= @count_adding_to_favorites %></span></div>
+              </button>
+            </div>
+          </div>
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default">
+                <%= link_to "Following", followings_user_path(@user) %>
+                <div><span class="badge"><%= @count_followings %></span></div>
+              </button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default">
+                <%= link_to "Followers", followers_user_path(@user) %>
+                <div><span class="badge"><%= @count_followers %></span></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%= form_for(@micropost) do |f| %>
+        <div class="form-group">
+          <%= f.text_area :content, class: "form-control", rows: 5 %>
+        </div>
+        <%= f.submit "Post Micropost", class: "btn btn-primary btn-block" %>
+      <% end %>
     </aside>
-    <div class="col-xs-5">
+    <div class="col-xs-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title text-center">Popular Microposts</h3>
+        </div>
+        <div class="panel-body">
+          <%= render "microposts/microposts", microposts: @ranking, user: @user %>
+        </div>
+      </div>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title text-center">Your & Following User's Microposts</h3>
@@ -13,18 +62,7 @@
         </div>
       </div>
     </div>
-    <div class="col-xs-4">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title text-center">Popular Microposts</h3>
-        </div>
-        <div class="panel-body">
-          <%= render "microposts/microposts", microposts: @ranking, user: @user %>
-        </div>
-      </div>
-    </div>
   </div>
-  <% session[:micropost_id] = "0" %>
 <% else %>
   <div class="center jumbotron">
     <div class="text-center">

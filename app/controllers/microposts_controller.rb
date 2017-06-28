@@ -37,15 +37,13 @@ class MicropostsController < ApplicationController
   
   def destroy_linked_favorites
     if Favorite.find_by(micropost_id: @micropost.id)
-      favorites = Favorite.all
-      favorites.destroy_all(micropost_id: @micropost.id)
+      @micropost.favorites.destroy_all
     end
   end
 
   def destroy_linked_comments
     if Comment.find_by(micropost_id: @micropost.id)
-      comments = Comment.all
-      comments.destroy_all(micropost_id: @micropost.id)
+      @micropost.comments.destroy_all
     end
   end
 
